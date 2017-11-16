@@ -41,6 +41,7 @@ function createTodo(title) {
     contentType: "application/json",
     dataType: "json"
   })
+
   .done(function(data) {
     console.log(data);
 
@@ -102,6 +103,7 @@ function createTodo(title) {
 
     updateCounters();
   })
+
 
   .fail(function(error) {
     console.log(error)
