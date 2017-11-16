@@ -5,7 +5,6 @@ function toggleDone() {
   var todoId = tableRow.data('id');
   var isCompleted = !tableRow.hasClass("success");
 
-
   $.ajax({
     type: "PUT",
     url: "/todos/" + todoId + ".json",
@@ -13,15 +12,15 @@ function toggleDone() {
       todo: { completed: isCompleted }
     }),
     contentType: "application/json",
-    dataType: "json"})
+    dataType: "json"
+  })
+  .done(function(data) {
+    console.log(data);
 
-    .done(function(data) {
-      console.log(data);
+    tableRow.toggleClass("success", data.completed);
 
-      tableRow.toggleClass("success", data.completed);
-
-      updateCounters();
-    });
+    updateCounters();
+  });
 }
 
 function updateCounters() {
@@ -71,7 +70,6 @@ function createTodo(title) {
     showError(error_message);
   });
 }
-
   function showError(message) {
     var errorHelpBlock = $('<span class="help-block"></span>')
       .attr('id', 'error_message')
@@ -82,59 +80,6 @@ function createTodo(title) {
       .append(errorHelpBlock);
   }
 
-
-function resetErrors() {
-  $("#error_message").remove();
-  $("#formgroup-title").removeClass("has-error");
-}
-
-function submitTodo(event) {
-  event.preventDefault();
-  resetErrors();
-
-  createTodo($("#todo_title").val());
-  $("#todo_title").val(null);
-  updateCounters();
-}
-
-function cleanUpDoneTodos(event) {
-  event.preventDefault();
-  $.when($(".success").remove())
-    .then(updateCounters);
-}
-
-$(document).ready(function() {
-  $("input[type=checkbox]").bind('change', toggleDone);
-  $("form").bind('submit', submitTodo);
-  $("#clean-up").bind('click', cleanUpDoneTodos);
-  updateCounters();
-})
-
-//new
-
-function toggleDone() {
-  $(this).parent().parent().toggleClass("success");
-  updateCounters();
-}
-
-function updateCounters() {
-  $("#total-count").html($(".todo").size());
-  $("#completed-count").html($(".success").size());
-  $("#todo-count").html($(".todo").size() - $(".success").size());
-}
-
-ffunction createTodo(title) {
-  var newTodo = { title: title, completed: false };
-
-  $.ajax({
-    type: "POST",
-    url: "/todos.json",
-    data: JSON.stringify({
-      todo: newTodo
-    }),
-    contentType: "application/json",
-    dataType: "json"
-  })
   .done(function(data) {
     console.log(data);
 
@@ -163,6 +108,57 @@ ffunction createTodo(title) {
     error_message = error.responseJSON.title[0];
     showError(error_message);
   });
+}
+
+function resetErrors() {
+  $("#error_message").remove();
+  $("#formgroup-title").removeClass("has-error");
+}
+
+function submitTodo(event) {
+  event.preventDefault();
+  resetErrors();
+
+  createTodo($("#todo_title").val());
+  $("#todo_title").val(null);
+  updateCounters();
+}
+
+function cleanUpDoneTodos(event) {
+  event.preventDefault();
+
+  $.each($(".success"), function(index, tableRow) {
+    todoId = $(tableRow).data('id');
+    deleteTodo(todoId);
+  });
+}
+
+function deleteTodo(todoId) {
+  $.ajax({
+    type: "DELETE",
+    url: "/todos/" + todoId + ".json",
+    contentType: "application/json",
+    dataType: "json"
+  })
+  .done(function(data) {
+    $('tr[data-id="'+todoId+'"]').remove();
+    updateCounters();
+  });
+}
+
+$(document).ready(function() {
+  $("input[type=checkbox]").bind('change', toggleDone);
+  $("form").bind('submit', submitTodo);
+  $("#clean-up").bind('click', cleanUpDoneTodos);
+  updateCounters();
+})
+
+//new
+
+function updateCounters() {
+  $("#total-count").html($(".todo").size());
+  $("#completed-count").html($(".success").size());
+  $("#todo-count").html($(".todo").size() - $(".success").size());
 }
 
 function showError(message) {
